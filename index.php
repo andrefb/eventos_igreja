@@ -1,3 +1,4 @@
+<?php require_once 'config.php'; ?>
 <!DOCTYPE html>
 <html class="dark" lang="pt-BR">
 
@@ -5,6 +6,21 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Culto de Réveillon 2026 - Igreja Vivos com Cristo</title>
+    
+    <!-- Open Graph / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eventos.vivos.site/">
+    <meta property="og:title" content="Culto de Réveillon 2026">
+    <meta property="og:description" content="Venha celebrar a virada do ano conosco! 31 de Dezembro, 19h30 - Igreja Vivos com Cristo">
+    <meta property="og:image" content="https://eventos.vivos.site/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Culto de Réveillon 2026">
+    <meta property="twitter:description" content="Venha celebrar a virada do ano conosco! 🎉">
+    <meta property="twitter:image" content="https://eventos.vivos.site/og-image.jpg">
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -152,7 +168,7 @@
 
         <!-- Botão CTA Principal -->
         <div class="px-4 mb-10 w-full">
-            <a href="inscricao.html" class="w-full relative group overflow-hidden rounded-full p-[1px] block">
+            <a href="inscricao" class="w-full relative group overflow-hidden rounded-full p-[1px] block">
                 <span
                     class="absolute inset-0 bg-gradient-to-r from-primary via-yellow-200 to-primary opacity-70 group-hover:opacity-100 transition-opacity"></span>
                 <div
@@ -286,7 +302,7 @@
                     <span class="text-xs font-bold text-white" id="countdown-mini">5 dias</span>
                 </div>
             </div>
-            <a href="inscricao.html"
+            <a href="inscricao"
                 class="bg-primary text-background-dark font-bold text-sm px-5 py-2.5 rounded-full shadow-lg shadow-primary/20 hover:bg-[#ffed4a] transition-colors">
                 Confirmar
             </a>

@@ -1,0 +1,26 @@
+# Habilitar mod_rewrite
+RewriteEngine On
+
+# Diretório base (subpasta do evento)
+RewriteBase /evento-igreja/
+
+# Se o arquivo existe, servir diretamente
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Se o diretório existe, servir diretamente
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Tentar adicionar .php se o arquivo existir
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# Definir index.php como padrão
+DirectoryIndex index.php
+
+# Negar acesso a arquivos sensíveis
+<FilesMatch "\.(env|sqlite|db|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
