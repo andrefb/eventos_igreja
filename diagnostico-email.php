@@ -66,17 +66,19 @@ if (!$socket) {
     echo "   Erro: [{$errNo}] {$erro}\n";
 } else {
     echo "   ✅ CONECTOU em {$elapsed}ms!\n";
+    
+    // Ler banner multiline (220-... 220-... 220 ...)
     $banner = fgets($socket, 515);
     echo "   Banner: " . trim($banner) . "\n";
+    while (substr($banner, 3, 1) == '-') {
+        $banner = fgets($socket, 515);
+    }
     
     echo "\n5. TESTE DE AUTENTICAÇÃO:\n";
     
     fputs($socket, "EHLO eventos.vivos.site\r\n");
-    $resp = '';
-    while ($line = fgets($socket, 515)) {
-        $resp .= $line;
-        if (substr($line, 3, 1) !== '-') break;
-    }
+    $resp = fgets($socket, 515);
+    while (substr($resp, 3, 1) == '-') $resp = fgets($socket, 515);
     echo "   EHLO: " . (str_starts_with($resp, '250') ? "✅ OK" : "❌ " . trim($resp)) . "\n";
     
     // STARTTLS para porta 587
@@ -88,11 +90,9 @@ if (!$socket) {
         stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         
         fputs($socket, "EHLO eventos.vivos.site\r\n");
-        $resp = '';
-        while ($line = fgets($socket, 515)) {
-            $resp .= $line;
-            if (substr($line, 3, 1) !== '-') break;
-        }
+        $resp = fgets($socket, 515);
+        while (substr($resp, 3, 1) == '-') $resp = fgets($socket, 515);
+        echo "   EHLO (TLS): " . (str_starts_with($resp, '250') ? "✅ OK" : "❌ " . trim($resp)) . "\n";
     }
     
     fputs($socket, "AUTH LOGIN\r\n");
