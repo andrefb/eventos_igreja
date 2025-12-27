@@ -363,7 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     </div>
                 </div>
 
-                <a href="index" class="text-primary hover:text-[#ffed4a] font-medium transition-colors">
+                <a href="/" class="text-primary hover:text-[#ffed4a] font-medium transition-colors">
                     ← Voltar para a página inicial
                 </a>
             </div>
