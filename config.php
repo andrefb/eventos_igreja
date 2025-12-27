@@ -502,10 +502,11 @@ function enviarEmailSMTP(string $para, string $nome, string $assunto, string $te
         $corpo .= chunk_split(base64_encode($html)) . "\r\n";
         $corpo .= "--{$boundary}--";
 
-        // Comandos SMTP
+        // Comandos SMTP - ler banner multiline
         $resposta = fgets($socket, 515);
+        while (substr($resposta, 3, 1) == '-') $resposta = fgets($socket, 515);
         
-        fputs($socket, "EHLO " . MAIL_HOST . "\r\n");
+        fputs($socket, "EHLO eventos.vivos.site\r\n");
         $resposta = fgets($socket, 515);
         while (substr($resposta, 3, 1) == '-') $resposta = fgets($socket, 515);
         
@@ -515,7 +516,7 @@ function enviarEmailSMTP(string $para, string $nome, string $assunto, string $te
             $resposta = fgets($socket, 515);
             stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
             
-            fputs($socket, "EHLO " . MAIL_HOST . "\r\n");
+            fputs($socket, "EHLO eventos.vivos.site\r\n");
             $resposta = fgets($socket, 515);
             while (substr($resposta, 3, 1) == '-') $resposta = fgets($socket, 515);
         }
