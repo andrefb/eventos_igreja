@@ -162,15 +162,15 @@ if ($logado) {
         <div class="max-w-2xl mx-auto px-4">
             <!-- Cards de estatísticas -->
             <div class="grid grid-cols-3 gap-3 mb-4 pt-4">
-                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                <div onclick="filtrar('todos')" class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center cursor-pointer hover:border-primary/30 transition-colors">
                     <p class="text-2xl font-bold text-primary"><?= $totalPessoas ?></p>
                     <p class="text-xs text-text-secondary">Total Pessoas</p>
                 </div>
-                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                <div onclick="filtrar('jantar')" class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center cursor-pointer hover:border-primary/30 transition-colors">
                     <p class="text-2xl font-bold text-primary"><?= $pessoasJantar ?></p>
                     <p class="text-xs text-text-secondary">No Jantar</p>
                 </div>
-                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                <div onclick="filtrar('pratos')" class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center cursor-pointer hover:border-primary/30 transition-colors">
                     <p class="text-2xl font-bold text-primary"><?= $totalPratos ?></p>
                     <p class="text-xs text-text-secondary">Pratos</p>
                 </div>
@@ -181,13 +181,13 @@ if ($logado) {
                 <button onclick="filtrar('todos')" id="btn-todos" class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background-dark">
                     Todos
                 </button>
-                <button onclick="filtrar('jantar')" id="btn-jantar" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                <button onclick="filtrar('jantar')" id="btn-jantar" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white">
                     Jantar
                 </button>
-                <button onclick="filtrar('culto')" id="btn-culto" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                <button onclick="filtrar('culto')" id="btn-culto" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white">
                     Só Culto
                 </button>
-                <button onclick="filtrar('pratos')" id="btn-pratos" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                <button onclick="filtrar('pratos')" id="btn-pratos" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white">
                     Pratos
                 </button>
             </div>
