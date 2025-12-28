@@ -260,7 +260,7 @@ if ($logado) {
                 <div class="text-right text-[10px] space-y-0.5 whitespace-nowrap">
                     <div class="text-gray-400">total: <?= $pr['total'] ?></div>
                     <div class="text-primary">escolhido: <?= $pr['escolhidos'] ?></div>
-                    <div class="<?= $pr['restantes'] <= 0 ? 'text-red-500' : 'text-sky-400' ?>">disponível: <?= $pr['restantes'] ?></div>
+                    <div class="<?= $pr['restantes'] <= 0 ? 'text-red-800' : 'text-sky-400' ?>">disponível: <?= $pr['restantes'] ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
