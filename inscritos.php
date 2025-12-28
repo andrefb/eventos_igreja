@@ -258,9 +258,9 @@ if ($logado) {
                     <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
                 </div>
                 <div class="text-right text-[10px] space-y-0.5 whitespace-nowrap">
-                    <div class="text-gray-500">total: <?= $pr['total'] ?></div>
+                    <div class="text-gray-400">total: <?= $pr['total'] ?></div>
                     <div class="text-primary">escolhido: <?= $pr['escolhidos'] ?></div>
-                    <div class="text-sky-400">disponível: <?= $pr['restantes'] ?></div>
+                    <div class="<?= $pr['restantes'] <= 0 ? 'text-red-500' : 'text-sky-400' ?>">disponível: <?= $pr['restantes'] ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
