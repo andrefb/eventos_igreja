@@ -1,6 +1,9 @@
 <?php
 require_once 'config.php';
 
+// Garantir que as tabelas existam (importante para a tabela de configurações)
+initDB();
+
 session_start();
 
 // Verificar login
