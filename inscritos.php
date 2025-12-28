@@ -68,13 +68,14 @@ if ($logado) {
         ORDER BY i.created_at ASC
     ")->fetchAll();
     
-    // Resumo de pratos por quantidade (usando mesma lógica do buscarPratos)
+    // Resumo de pratos por quantidade (só pratos escolhidos)
     $pratosResumo = $pdo->query("
         SELECT p.nome, p.quantidade_total as total,
                (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id) as escolhidos,
                (p.quantidade_total - (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id)) as restantes
         FROM pratos p
-        WHERE p.ativo = 1
+        WHERE p.ativo = 1 
+          AND (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id) > 0
         ORDER BY escolhidos DESC, p.nome ASC
     ")->fetchAll();
 }
@@ -256,9 +257,10 @@ if ($logado) {
                     <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['escolhidos'] ?></span>
                     <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
                 </div>
-                <div class="text-right text-xs space-y-1">
-                    <div class="bg-white/10 px-2 py-0.5 rounded">total: <?= $pr['total'] ?></div>
-                    <div class="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded">disp: <?= $pr['restantes'] ?></div>
+                <div class="text-right text-[10px] space-y-0.5 whitespace-nowrap">
+                    <div class="text-gray-500">total: <?= $pr['total'] ?></div>
+                    <div class="text-primary">escolhido: <?= $pr['escolhidos'] ?></div>
+                    <div class="text-sky-400">disponível: <?= $pr['restantes'] ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
