@@ -380,7 +380,7 @@ $inscricoesAbertas = inscricoesAbertas();
         // Função de compartilhar
         function compartilhar() {
             const url = 'https://eventos.vivos.site';
-            const texto = 'Culto de Réveillon 2025 - Igreja Vivos com Cristo';
+            const texto = 'Culto de Réveillon 2026 - Igreja Vivos com Cristo';
 
             if (navigator.share) {
                 navigator.share({
