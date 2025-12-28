@@ -200,12 +200,12 @@ if ($logado) {
                         <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
                             <?= htmlspecialchars($insc['pratos_escolhidos']) ?>
                         </span>
-                        <div class="text-[10px] text-sky-400/70 mt-1"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
+                        <div class="text-[11px] text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php elseif (!$insc['participa_jantar']): ?>
                     <div class="text-right shrink-0">
                         <span class="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded">Só culto</span>
-                        <div class="text-[10px] text-sky-400/70 mt-1"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
+                        <div class="text-[11px] text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php endif; ?>
                 </div>
