@@ -68,14 +68,13 @@ if ($logado) {
         ORDER BY i.created_at ASC
     ")->fetchAll();
     
-    // Resumo de pratos por quantidade (só pratos escolhidos)
+    // Resumo de pratos por quantidade (todos os pratos ativos)
     $pratosResumo = $pdo->query("
         SELECT p.nome, p.quantidade_total as total,
                (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id) as escolhidos,
                (p.quantidade_total - (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id)) as restantes
         FROM pratos p
-        WHERE p.ativo = 1 
-          AND (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id) > 0
+        WHERE p.ativo = 1
         ORDER BY escolhidos DESC, p.nome ASC
     ")->fetchAll();
 }
@@ -252,6 +251,7 @@ if ($logado) {
         <!-- Lista de Pratos (escondida por padrão) -->
         <div class="space-y-3 hidden" id="lista-pratos">
             <?php foreach ($pratosResumo as $pr): ?>
+            <?php if ($pr['escolhidos'] > 0): ?>
             <div class="flex items-center justify-between gap-3 bg-surface-dark rounded-xl p-4 border border-white/5">
                 <div class="flex items-center gap-3">
                     <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['escolhidos'] ?></span>
@@ -263,6 +263,19 @@ if ($logado) {
                     <div class="<?= $pr['restantes'] <= 0 ? 'text-red-800' : 'text-sky-400' ?>">disponível: <?= $pr['restantes'] ?></div>
                 </div>
             </div>
+            <?php else: ?>
+            <div class="flex items-center justify-between gap-3 bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 bg-gray-700/50 text-gray-500 font-bold text-lg flex items-center justify-center rounded"><?= $pr['escolhidos'] ?></span>
+                    <span class="text-gray-500"><?= htmlspecialchars($pr['nome']) ?></span>
+                </div>
+                <div class="text-right text-[11px] space-y-0.5 whitespace-nowrap">
+                    <div class="text-gray-400">total: <?= $pr['total'] ?></div>
+                    <div class="text-gray-500">escolhido: <?= $pr['escolhidos'] ?></div>
+                    <div class="text-sky-400">disponível: <?= $pr['restantes'] ?></div>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php endforeach; ?>
         </div>
     </main>
