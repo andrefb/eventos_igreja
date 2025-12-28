@@ -57,6 +57,16 @@ if ($logado) {
         FROM inscricoes i 
         ORDER BY i.created_at ASC
     ")->fetchAll();
+    
+    // Lista de pratos com inscritos (para filtro Pratos)
+    $pratosInscritos = $pdo->query("
+        SELECT p.nome as prato_nome, i.nome as inscrito_nome, i.created_at,
+               (SELECT COUNT(*) FROM acompanhantes WHERE inscricao_id = i.id) as total_acompanhantes
+        FROM inscricao_pratos ip
+        JOIN pratos p ON ip.prato_id = p.id
+        JOIN inscricoes i ON ip.inscricao_id = i.id
+        ORDER BY i.created_at ASC
+    ")->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -177,6 +187,9 @@ if ($logado) {
                 <button onclick="filtrar('culto')" id="btn-culto" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
                     Só Culto
                 </button>
+                <button onclick="filtrar('pratos')" id="btn-pratos" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                    Pratos
+                </button>
             </div>
         </div>
     </div>
@@ -224,12 +237,40 @@ if ($logado) {
             <?php endforeach; ?>
             <?php endif; ?>
         </div>
+        
+        <!-- Lista de Pratos (escondida por padrão) -->
+        <div class="space-y-4 hidden" id="lista-pratos">
+            <?php if (empty($pratosInscritos)): ?>
+            <div class="bg-surface-dark rounded-xl p-8 text-center text-text-secondary border border-white/5">
+                <span class="material-symbols-outlined text-4xl mb-2">restaurant</span>
+                <p>Nenhum prato escolhido ainda</p>
+            </div>
+            <?php else: ?>
+            <?php foreach ($pratosInscritos as $prato): ?>
+            <div class="rounded-xl p-4 border bg-surface-dark border-white/5">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex-1">
+                        <p class="font-bold text-primary"><?= htmlspecialchars($prato['prato_nome']) ?></p>
+                        <p class="text-sm text-gray-400 mt-1"><?= htmlspecialchars($prato['inscrito_nome']) ?></p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="text-xs text-sky-400 bg-sky-500/20 px-2 py-1 rounded">
+                            <?= 1 + $prato['total_acompanhantes'] ?> pessoa<?= (1 + $prato['total_acompanhantes']) > 1 ? 's' : '' ?>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </main>
     
     <script>
         function filtrar(tipo) {
             const items = document.querySelectorAll('[data-tipo]');
             const btns = document.querySelectorAll('[id^="btn-"]');
+            const listaInscritos = document.getElementById('lista-inscritos');
+            const listaPratos = document.getElementById('lista-pratos');
             
             // Reset botões
             btns.forEach(btn => {
@@ -241,14 +282,23 @@ if ($logado) {
             document.getElementById('btn-' + tipo).classList.remove('bg-surface-dark', 'text-white');
             document.getElementById('btn-' + tipo).classList.add('bg-primary', 'text-background-dark');
             
-            // Filtrar lista
-            items.forEach(item => {
-                if (tipo === 'todos' || item.dataset.tipo === tipo) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+            // Alternar entre listas
+            if (tipo === 'pratos') {
+                listaInscritos.classList.add('hidden');
+                listaPratos.classList.remove('hidden');
+            } else {
+                listaInscritos.classList.remove('hidden');
+                listaPratos.classList.add('hidden');
+                
+                // Filtrar lista de inscritos
+                items.forEach(item => {
+                    if (tipo === 'todos' || item.dataset.tipo === tipo) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
         }
     </script>
 <?php endif; ?>
