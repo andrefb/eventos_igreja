@@ -50,6 +50,7 @@ if ($logado) {
     // Inscrições com acompanhantes e pratos
     $inscricoes = $pdo->query("
         SELECT i.*, 
+               (SELECT COUNT(*) FROM acompanhantes WHERE inscricao_id = i.id) as total_acompanhantes,
                (SELECT GROUP_CONCAT(nome, ', ') FROM acompanhantes WHERE inscricao_id = i.id) as nomes_acompanhantes,
                (SELECT GROUP_CONCAT(p.nome, ', ') FROM inscricao_pratos ip 
                 JOIN pratos p ON ip.prato_id = p.id WHERE ip.inscricao_id = i.id) as pratos_escolhidos
@@ -178,7 +179,7 @@ if ($logado) {
         </div>
 
         <!-- Lista de Inscritos -->
-        <div class="space-y-3" id="lista-inscritos">
+        <div class="space-y-4" id="lista-inscritos">
             <?php if (empty($inscricoes)): ?>
             <div class="bg-surface-dark rounded-xl p-8 text-center text-text-secondary border border-white/5">
                 <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
@@ -199,10 +200,12 @@ if ($logado) {
                         <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
                             <?= htmlspecialchars($insc['pratos_escolhidos']) ?>
                         </span>
+                        <div class="text-[10px] text-sky-400/70 mt-1"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php elseif (!$insc['participa_jantar']): ?>
                     <div class="text-right shrink-0">
                         <span class="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded">Só culto</span>
+                        <div class="text-[10px] text-sky-400/70 mt-1"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php endif; ?>
                 </div>

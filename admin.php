@@ -329,8 +329,9 @@ $tab = $_GET['tab'] ?? 'inscricoes';
                                 <span class="text-text-secondary">Não</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="px-4 py-3 text-text-secondary text-xs max-w-[150px] truncate">
-                                <?= htmlspecialchars($insc['pratos_escolhidos'] ?? '-') ?>
+                            <td class="px-4 py-3 text-text-secondary text-xs max-w-[150px]">
+                                <div class="truncate"><?= htmlspecialchars($insc['pratos_escolhidos'] ?? '-') ?></div>
+                                <div class="text-sky-400/70 text-[10px] mt-0.5"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <form method="POST" class="inline" onsubmit="return confirm('Excluir inscrição de <?= htmlspecialchars($insc['nome']) ?>?')">
