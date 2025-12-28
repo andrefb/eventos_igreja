@@ -200,7 +200,7 @@ if ($logado) {
                             $acompanhantes = explode(', ', $insc['nomes_acompanhantes']);
                             $formatados = array_map(function($nome) {
                                 $partes = explode(' ', trim($nome), 2);
-                                return '<span class="text-gray-300">' . htmlspecialchars($partes[0]) . '</span>' . (isset($partes[1]) ? ' <span class="text-gray-500">' . htmlspecialchars($partes[1]) . '</span>' : '');
+                                return '<span class="text-gray-400">' . htmlspecialchars($partes[0]) . '</span>' . (isset($partes[1]) ? ' <span class="text-gray-600">' . htmlspecialchars($partes[1]) . '</span>' : '');
                             }, $acompanhantes);
                         ?>
                         <p class="text-sm text-text-secondary mt-1"><?= implode(', ', $formatados) ?></p>
