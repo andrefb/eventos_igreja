@@ -68,13 +68,14 @@ if ($logado) {
         ORDER BY i.created_at ASC
     ")->fetchAll();
     
-    // Resumo de pratos por quantidade
+    // Resumo de pratos por quantidade (usando mesma lógica do buscarPratos)
     $pratosResumo = $pdo->query("
-        SELECT p.nome, COUNT(*) as quantidade
-        FROM inscricao_pratos ip
-        JOIN pratos p ON ip.prato_id = p.id
-        GROUP BY p.nome
-        ORDER BY quantidade DESC, p.nome ASC
+        SELECT p.nome, p.quantidade_total as total,
+               (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id) as escolhidos,
+               (p.quantidade_total - (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id)) as restantes
+        FROM pratos p
+        WHERE p.ativo = 1
+        ORDER BY escolhidos DESC, p.nome ASC
     ")->fetchAll();
 }
 ?>
@@ -250,9 +251,15 @@ if ($logado) {
         <!-- Lista de Pratos (escondida por padrão) -->
         <div class="space-y-3 hidden" id="lista-pratos">
             <?php foreach ($pratosResumo as $pr): ?>
-            <div class="flex items-center gap-3 bg-surface-dark rounded-xl p-4 border border-white/5">
-                <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['quantidade'] ?></span>
-                <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
+            <div class="flex items-center justify-between gap-3 bg-surface-dark rounded-xl p-4 border border-white/5">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['escolhidos'] ?></span>
+                    <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
+                </div>
+                <div class="text-right text-xs space-y-1">
+                    <div class="bg-white/10 px-2 py-0.5 rounded">total: <?= $pr['total'] ?></div>
+                    <div class="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded">disp: <?= $pr['restantes'] ?></div>
+                </div>
             </div>
             <?php endforeach; ?>
         </div>
