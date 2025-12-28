@@ -232,7 +232,7 @@ $inscricoesAbertas = inscricoesAbertas();
                                 <span class="text-primary font-bold text-sm">21h30</span>
                                 <span class="bg-white/5 text-[10px] px-2 py-0.5 rounded text-gray-400">Igreja</span>
                             </div>
-                            <h3 class="text-white text-base font-bold leading-tight mb-1">Jantar</h3>
+                            <h3 class="text-white text-base font-bold leading-tight mb-1">Jantar <span class="text-xs font-normal italic text-gray-400">(opcional)</span></h3>
                             <p class="text-text-secondary text-sm leading-relaxed">Jantar e comunhão</p>
                         </div>
                     </div>
@@ -269,13 +269,12 @@ $inscricoesAbertas = inscricoesAbertas();
                     <h2 class="text-lg font-bold text-white">Jantar Compartilhado</h2>
                 </div>
                 <p class="text-sm text-text-secondary mb-6 leading-relaxed">
-                    A participação no jantar é opcional. Quem for participar deve escolher um prato para compartilhar.
+                    A participação no jantar é opcional. Quem for participar deve escolher <span class="font-bold text-white">um prato</span> para compartilhar e trazer sua própria <span class="font-bold text-white">bebida</span>.
                 </p>
                 <div class="bg-primary/10 rounded-xl p-4 border border-primary/20 flex gap-3 items-start">
                     <span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">lightbulb</span>
                     <p class="text-xs text-primary/90 leading-relaxed">
-                        <span class="font-bold">Dica Importante:</span> Traga os talheres necessários para servir e sua
-                        própria bebida.
+                        <span class="font-bold">Dica Importante:</span> Traga os talheres necessários para servir o prato.
                     </p>
                 </div>
             </div>
