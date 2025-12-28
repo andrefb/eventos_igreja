@@ -216,7 +216,7 @@ $inscricoesAbertas = inscricoesAbertas();
                             </div>
                             <h3 class="text-white text-base font-bold leading-tight mb-1">Culto de Celebração</h3>
                             <p class="text-text-secondary text-sm leading-relaxed">Momento de louvor, adoração e
-                                ministração da palavra</p>
+                                ministração da Palavra</p>
                         </div>
                     </div>
 
