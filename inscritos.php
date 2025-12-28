@@ -235,12 +235,12 @@ if ($logado) {
                         <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
                             <?= htmlspecialchars($insc['pratos_escolhidos']) ?>
                         </span>
-                        <div class="text-[11px] text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
+                        <div class="text-xs text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php elseif (!$insc['participa_jantar']): ?>
                     <div class="text-right shrink-0">
                         <span class="text-xs text-blue-400 bg-blue-500/20 px-2 py-1 rounded">Só culto</span>
-                        <div class="text-[11px] text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
+                        <div class="text-xs text-sky-400/70 mt-2"><?= 1 + $insc['total_acompanhantes'] ?> pessoa<?= (1 + $insc['total_acompanhantes']) > 1 ? 's' : '' ?></div>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -257,7 +257,7 @@ if ($logado) {
                     <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['escolhidos'] ?></span>
                     <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
                 </div>
-                <div class="text-right text-[10px] space-y-0.5 whitespace-nowrap">
+                <div class="text-right text-[11px] space-y-0.5 whitespace-nowrap">
                     <div class="text-gray-400">total: <?= $pr['total'] ?></div>
                     <div class="text-primary">escolhido: <?= $pr['escolhidos'] ?></div>
                     <div class="<?= $pr['restantes'] <= 0 ? 'text-red-800' : 'text-sky-400' ?>">disponível: <?= $pr['restantes'] ?></div>
