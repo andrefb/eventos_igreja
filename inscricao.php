@@ -77,8 +77,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             
             if ($inscricao['participa_jantar'] && !empty($inscricao['pratos'])) {
                 $pdo = getDB();
-                $stmt = $pdo->prepare("SELECT nome FROM pratos WHERE id = ?");
-                $stmt->execute([$inscricao['pratos'][0]]);
+                // Buscar nomes de todos os pratos selecionados
+                $pratoIds = $inscricao['pratos'];
+                $placeholders = implode(',', array_fill(0, count($pratoIds), '?'));
+                $stmt = $pdo->prepare("SELECT nome FROM pratos WHERE id IN ($placeholders)");
+                $stmt->execute($pratoIds);
                 $pratosNomes = $stmt->fetchAll(PDO::FETCH_COLUMN);
             }
             
