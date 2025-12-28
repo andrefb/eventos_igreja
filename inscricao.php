@@ -216,11 +216,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 
                 <!-- Nome -->
                 <div>
-                    <label class="block text-[10px] uppercase tracking-wider text-text-secondary mb-2">Seu Nome Completo</label>
+                    <label class="block text-[10px] uppercase tracking-wider text-text-secondary mb-2">Seu Nome</label>
                     <div class="relative">
                         <input type="text" id="input-nome" name="nome" required
                             class="w-full bg-surface-dark border border-white/10 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                            placeholder="Ex: Maria Silva">
+                            placeholder="Seu nome">
                         <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">person</span>
                     </div>
                 </div>
