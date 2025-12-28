@@ -147,37 +147,42 @@ if ($logado) {
         </div>
     </header>
 
+    <!-- Área Fixa: Estatísticas + Filtros -->
+    <div class="sticky top-[60px] z-40 bg-background-dark pb-4">
+        <div class="max-w-2xl mx-auto px-4">
+            <!-- Cards de estatísticas -->
+            <div class="grid grid-cols-3 gap-3 mb-4 pt-4">
+                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                    <p class="text-2xl font-bold text-primary"><?= $totalPessoas ?></p>
+                    <p class="text-xs text-text-secondary">Total Pessoas</p>
+                </div>
+                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                    <p class="text-2xl font-bold text-primary"><?= $pessoasJantar ?></p>
+                    <p class="text-xs text-text-secondary">No Jantar</p>
+                </div>
+                <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
+                    <p class="text-2xl font-bold text-primary"><?= $totalPratos ?></p>
+                    <p class="text-xs text-text-secondary">Pratos</p>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="flex gap-2">
+                <button onclick="filtrar('todos')" id="btn-todos" class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background-dark">
+                    Todos
+                </button>
+                <button onclick="filtrar('jantar')" id="btn-jantar" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                    Jantar
+                </button>
+                <button onclick="filtrar('culto')" id="btn-culto" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
+                    Só Culto
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Conteúdo -->
-    <main class="max-w-2xl mx-auto px-4 py-6">
-        <!-- Cards de estatísticas -->
-        <div class="grid grid-cols-3 gap-3 mb-6">
-            <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
-                <p class="text-2xl font-bold text-primary"><?= $totalPessoas ?></p>
-                <p class="text-xs text-text-secondary">Total Pessoas</p>
-            </div>
-            <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
-                <p class="text-2xl font-bold text-primary"><?= $pessoasJantar ?></p>
-                <p class="text-xs text-text-secondary">No Jantar</p>
-            </div>
-            <div class="bg-surface-dark rounded-xl p-4 border border-white/5 text-center">
-                <p class="text-2xl font-bold text-primary"><?= $totalPratos ?></p>
-                <p class="text-xs text-text-secondary">Pratos</p>
-            </div>
-        </div>
-
-        <!-- Filtros -->
-        <div class="flex gap-2 mb-4">
-            <button onclick="filtrar('todos')" id="btn-todos" class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background-dark">
-                Todos
-            </button>
-            <button onclick="filtrar('jantar')" id="btn-jantar" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
-                Jantar
-            </button>
-            <button onclick="filtrar('culto')" id="btn-culto" class="px-4 py-2 rounded-xl text-sm font-medium bg-surface-dark text-white hover:bg-white/10">
-                Só Culto
-            </button>
-        </div>
-
+    <main class="max-w-2xl mx-auto px-4 py-4">
         <!-- Lista de Inscritos -->
         <div class="space-y-4" id="lista-inscritos">
             <?php if (empty($inscricoes)): ?>
