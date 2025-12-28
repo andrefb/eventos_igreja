@@ -67,6 +67,15 @@ if ($logado) {
         JOIN inscricoes i ON ip.inscricao_id = i.id
         ORDER BY i.created_at ASC
     ")->fetchAll();
+    
+    // Resumo de pratos por quantidade
+    $pratosResumo = $pdo->query("
+        SELECT p.nome, COUNT(*) as quantidade
+        FROM inscricao_pratos ip
+        JOIN pratos p ON ip.prato_id = p.id
+        GROUP BY p.nome
+        ORDER BY quantidade DESC
+    ")->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -177,7 +186,7 @@ if ($logado) {
             </div>
 
             <!-- Filtros -->
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <button onclick="filtrar('todos')" id="btn-todos" class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background-dark">
                     Todos
                 </button>
@@ -239,29 +248,13 @@ if ($logado) {
         </div>
         
         <!-- Lista de Pratos (escondida por padrão) -->
-        <div class="space-y-4 hidden" id="lista-pratos">
-            <?php if (empty($pratosInscritos)): ?>
-            <div class="bg-surface-dark rounded-xl p-8 text-center text-text-secondary border border-white/5">
-                <span class="material-symbols-outlined text-4xl mb-2">restaurant</span>
-                <p>Nenhum prato escolhido ainda</p>
-            </div>
-            <?php else: ?>
-            <?php foreach ($pratosInscritos as $prato): ?>
-            <div class="rounded-xl p-4 border bg-surface-dark border-white/5">
-                <div class="flex justify-between items-start gap-3">
-                    <div class="flex-1">
-                        <p class="font-bold text-primary"><?= htmlspecialchars($prato['prato_nome']) ?></p>
-                        <p class="text-sm text-gray-400 mt-1"><?= htmlspecialchars($prato['inscrito_nome']) ?></p>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <span class="text-xs text-sky-400 bg-sky-500/20 px-2 py-1 rounded">
-                            <?= 1 + $prato['total_acompanhantes'] ?> pessoa<?= (1 + $prato['total_acompanhantes']) > 1 ? 's' : '' ?>
-                        </span>
-                    </div>
-                </div>
+        <div class="space-y-3 hidden" id="lista-pratos">
+            <?php foreach ($pratosResumo as $pr): ?>
+            <div class="flex items-center gap-3 bg-surface-dark rounded-xl p-4 border border-white/5">
+                <span class="w-10 h-10 bg-primary/20 text-primary font-bold text-lg flex items-center justify-center rounded"><?= $pr['quantidade'] ?></span>
+                <span class="text-white"><?= htmlspecialchars($pr['nome']) ?></span>
             </div>
             <?php endforeach; ?>
-            <?php endif; ?>
         </div>
     </main>
     
@@ -282,13 +275,15 @@ if ($logado) {
             document.getElementById('btn-' + tipo).classList.remove('bg-surface-dark', 'text-white');
             document.getElementById('btn-' + tipo).classList.add('bg-primary', 'text-background-dark');
             
-            // Alternar entre listas
+            // Esconder todas as listas
+            listaInscritos.classList.add('hidden');
+            listaPratos.classList.add('hidden');
+            
+            // Mostrar lista correta
             if (tipo === 'pratos') {
-                listaInscritos.classList.add('hidden');
                 listaPratos.classList.remove('hidden');
             } else {
                 listaInscritos.classList.remove('hidden');
-                listaPratos.classList.add('hidden');
                 
                 // Filtrar lista de inscritos
                 items.forEach(item => {
