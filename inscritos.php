@@ -196,8 +196,14 @@ if ($logado) {
                 <div class="flex justify-between items-start gap-3">
                     <div class="flex-1">
                         <p class="font-bold text-white"><?= htmlspecialchars($insc['nome']) ?></p>
-                        <?php if ($insc['nomes_acompanhantes']): ?>
-                        <p class="text-sm text-text-secondary mt-1"><?= htmlspecialchars($insc['nomes_acompanhantes']) ?></p>
+                        <?php if ($insc['nomes_acompanhantes']): 
+                            $acompanhantes = explode(', ', $insc['nomes_acompanhantes']);
+                            $formatados = array_map(function($nome) {
+                                $partes = explode(' ', trim($nome), 2);
+                                return '<span class="font-semibold text-white">' . htmlspecialchars($partes[0]) . '</span>' . (isset($partes[1]) ? ' ' . htmlspecialchars($partes[1]) : '');
+                            }, $acompanhantes);
+                        ?>
+                        <p class="text-sm text-text-secondary mt-1"><?= implode(', ', $formatados) ?></p>
                         <?php endif; ?>
                     </div>
                     <?php if ($insc['participa_jantar'] && $insc['pratos_escolhidos']): ?>
