@@ -74,7 +74,7 @@ if ($logado) {
         FROM inscricao_pratos ip
         JOIN pratos p ON ip.prato_id = p.id
         GROUP BY p.nome
-        ORDER BY quantidade DESC
+        ORDER BY quantidade DESC, p.nome ASC
     ")->fetchAll();
 }
 ?>
