@@ -285,6 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <label class="block text-xs font-bold uppercase tracking-wider text-white mb-3">🍲 Qual prato vai levar?</label>
                     <div class="space-y-2" id="lista-pratos">
                         <?php foreach ($pratos as $prato): ?>
+                        <?php if (strtolower($prato['nome']) === 'sobremesa') continue; ?>
                         <label class="flex items-center gap-3 bg-surface-dark border border-white/10 rounded-xl p-4 cursor-pointer hover:border-white/20 transition-colors <?= $prato['restantes'] <= 0 ? 'opacity-50' : '' ?>">
                             <input type="radio" name="prato" value="<?= $prato['id'] ?>" 
                                 <?= $prato['restantes'] <= 0 ? 'disabled' : '' ?>
