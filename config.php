@@ -81,6 +81,18 @@ function getDB(): PDO {
 function initDB(): void {
     $pdo = getDB();
     
+    // Tabela de configurações
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS configuracoes (
+            chave TEXT PRIMARY KEY,
+            valor TEXT NOT NULL
+        )
+    ");
+    
+    // Inserir data limite padrão se não existir
+    $stmt = $pdo->prepare("INSERT OR IGNORE INTO configuracoes (chave, valor) VALUES ('inscricoes_limite', '2025-12-30 09:00:00')");
+    $stmt->execute();
+    
     // Tabela de pratos
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS pratos (
@@ -144,6 +156,39 @@ function initDB(): void {
             $stmt->execute([$prato[0], $prato[1], $prato[1]]);
         }
     }
+}
+
+/**
+ * Verifica se as inscrições ainda estão abertas
+ */
+function inscricoesAbertas(): bool {
+    $dataLimite = getDataLimite();
+    if (!$dataLimite) return true; // Se não há limite, sempre aberto
+    
+    $agora = new DateTime();
+    $limite = new DateTime($dataLimite);
+    
+    return $agora < $limite;
+}
+
+/**
+ * Retorna a data limite das inscrições
+ */
+function getDataLimite(): ?string {
+    $pdo = getDB();
+    $stmt = $pdo->prepare("SELECT valor FROM configuracoes WHERE chave = 'inscricoes_limite'");
+    $stmt->execute();
+    $result = $stmt->fetch();
+    return $result ? $result['valor'] : null;
+}
+
+/**
+ * Define a data limite das inscrições
+ */
+function setDataLimite(string $dataHora): bool {
+    $pdo = getDB();
+    $stmt = $pdo->prepare("INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('inscricoes_limite', ?)");
+    return $stmt->execute([$dataHora]);
 }
 
 /**
@@ -353,13 +398,11 @@ Sua presença está confirmada para o {EVENTO_NOME}!
 {$listaPessoas}
 {$listaPratos}
 " . ($participaJantar ? "
-⚠️ LEMBRETES IMPORTANTES:
-• Traga a bebida de sua preferência
-• Traga talheres para servir o prato que vai levar
-• Chegue com antecedência para organização
+🍺 LEVE TAMBÉM A BEBIDA!
+🍴 Leve talheres para servir o prato
 " : "") . "
 
-Estamos ansiosos para celebrar a virada do ano com você!
+Estamos alegres por celebrar a virada do ano com você!
 
 Com carinho,
 Igreja Vivos com Cristo
@@ -369,81 +412,101 @@ Este é um email automático. Não responda.
 Para alterar sua inscrição, acesse: https://eventos.vivos.site/inscricao
 ";
 
-    // Versão HTML
+    // Versão HTML - Design elegante
+    $pratoNome = !empty($pratosEscolhidos) ? $pratosEscolhidos[0] : '';
+    
     $mensagemHTML = "
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset='utf-8'>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 24px; }
-        .logo { font-size: 24px; font-weight: bold; color: #333; }
-        .logo span { color: #d4a800; }
-        h1 { color: #d4a800; margin: 0 0 8px 0; font-size: 24px; }
-        .subtitle { color: #666; font-size: 14px; }
-        .card { background: #f8f9fa; border-radius: 12px; padding: 16px; margin: 16px 0; border: 1px solid #eee; }
-        .card-title { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .info-row { display: flex; align-items: center; margin: 8px 0; color: #333; }
-        .icon { margin-right: 8px; }
-        .badge { background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 16px; margin: 16px 0; }
-        .warning-title { color: #856404; font-weight: bold; font-size: 14px; margin-bottom: 8px; }
-        .warning ul { margin: 0; padding-left: 20px; color: #856404; font-size: 13px; }
-        .footer { text-align: center; color: #999; font-size: 11px; margin-top: 24px; }
-        .footer a { color: #d4a800; }
-    </style>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 </head>
-<body>
-    <div class='container'>
-        <div class='header'>
-            <div class='logo'>Igreja <span>Vivos com Cristo</span></div>
-        </div>
-        
-        <div style='text-align: center; margin-bottom: 24px;'>
-            <div style='width: 60px; height: 60px; background: #fff3cd; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 28px;'>✅</div>
-            <h1>Presença Confirmada!</h1>
-            <p class='subtitle'>Estamos ansiosos para celebrar com você!</p>
-        </div>
-        
-        <div class='card'>
-            <div class='card-title'>Evento</div>
-            <div class='info-row'>📅 <strong style='margin-left: 8px;'>31 de Dezembro de 2025 • 19h30</strong></div>
-            <div class='info-row'>📍 <span style='margin-left: 8px;'>" . EVENTO_LOCAL . "</span></div>
-        </div>
-        
-        <div class='card'>
-            <div class='card-title'>Pessoas Confirmadas</div>
-            <div style='margin-bottom: 8px;'><span class='badge'>{$totalPessoas} pessoa" . ($totalPessoas > 1 ? 's' : '') . "</span></div>
-            " . implode('', array_map(fn($p) => "<div class='info-row'>👤 <span style='margin-left: 8px;'>{$p}</span></div>", 
-                array_merge([$nome . ' (você)'], $acompanhantes))) . "
-        </div>
-        
-        " . ($participaJantar && !empty($pratosEscolhidos) ? "
-        <div class='card'>
-            <div class='card-title'>Pratos que você vai levar</div>
-            " . implode('', array_map(fn($p) => "<div class='info-row'>🍽️ <span style='margin-left: 8px;'>{$p}</span></div>", $pratosEscolhidos)) . "
-        </div>
-        " : "") . "
-        
-        " . ($participaJantar ? "
-        <div class='warning'>
-            <div class='warning-title'>⚠️ Lembretes Importantes</div>
-            <ul>
-                <li>Traga a <strong>bebida de sua preferência</strong></li>
-                <li>Traga <strong>talheres para servir</strong> o prato que vai levar</li>
-                <li>Chegue com antecedência para organização</li>
-            </ul>
-        </div>
-        " : "") . "
-        
-        <div class='footer'>
-            <p>Este é um email automático.</p>
-            <p><a href='https://eventos.vivos.site/inscricao'>Alterar inscrição</a></p>
-            <p>© 2025 Igreja Vivos com Cristo</p>
-        </div>
-    </div>
+<body style='margin: 0; padding: 0; background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;'>
+    <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f8f9fa; padding: 40px 20px;'>
+        <tr>
+            <td align='center'>
+                <table width='100%' cellpadding='0' cellspacing='0' style='max-width: 480px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);'>
+                    
+                    <!-- Header com gradiente dourado -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #d4a800 0%, #f4c430 100%); padding: 40px 30px; text-align: center;'>
+                            <div style='font-size: 18px; font-weight: 600; color: rgba(0,0,0,0.7); margin-bottom: 8px;'>Igreja Vivos com Cristo</div>
+                            <div style='width: 56px; height: 56px; background-color: rgba(255,255,255,0.9); border-radius: 50%; margin: 16px auto; display: inline-block; line-height: 56px;'>
+                                <span style='font-size: 28px; color: #d4a800;'>✓</span>
+                            </div>
+                            <h1 style='margin: 0; font-size: 26px; font-weight: 800; color: #000;'>Presença Confirmada!</h1>
+                            <p style='margin: 8px 0 0 0; font-size: 14px; color: rgba(0,0,0,0.6);'>Estamos alegres por celebrar com você</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Conteúdo -->
+                    <tr>
+                        <td style='padding: 30px;'>
+                            
+                            <!-- Evento -->
+                            <div style='margin-bottom: 24px;'>
+                                <div style='font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;'>📅 Evento</div>
+                                <div style='font-size: 18px; font-weight: 700; color: #222;'>31 de Dezembro de 2025</div>
+                                <div style='font-size: 14px; color: #666; margin-top: 4px;'>19h30 • " . EVENTO_LOCAL . "</div>
+                            </div>
+                            
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                            
+                            <!-- Participantes -->
+                            <div style='margin-bottom: 24px;'>
+                                <div style='font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;'>👥 Participantes ({$totalPessoas})</div>
+                                " . implode('', array_map(fn($p) => "<div style='font-size: 15px; color: #333; padding: 6px 0;'>• {$p}</div>", 
+                                    array_merge([$nome . ' (você)'], $acompanhantes))) . "
+                            </div>
+                            
+                            " . ($participaJantar && !empty($pratoNome) ? "
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                            
+                            <!-- Prato -->
+                            <div style='margin-bottom: 24px;'>
+                                <div style='font-size: 13px; font-weight: 800; color: #000; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;'>🍽️ Prato que vai levar</div>
+                                <div style='font-size: 22px; font-weight: 800; color: #1565c0;'>{$pratoNome}</div>
+                            </div>
+                            " : "") . "
+                            
+                            " . ($participaJantar ? "
+                            <!-- Lembretes -->
+                            <div style='background-color: #e8f4fd; border-radius: 16px; padding: 20px; margin-top: 24px;'>
+                                <div style='font-size: 16px; font-weight: 700; color: #1565c0; margin-bottom: 12px;'>Leve também sua bebida!</div>
+                                <div style='font-size: 13px; color: #666;'><strong>E não esqueça os talheres para servir o prato.</strong></div>
+                            </div>
+                            " : "") . "
+                            
+                        </td>
+                    </tr>
+                    
+                    " . (!$participaJantar ? "
+                    <!-- Somente Culto -->
+                    <tr>
+                        <td style='padding: 0 30px 30px 30px;'>
+                            <div style='background-color: #fff3cd; border-radius: 16px; padding: 20px;'>
+                                <div style='font-size: 14px; font-weight: 600; color: #856404;'>⛪ Participarei somente do culto</div>
+                                <div style='font-size: 13px; color: #856404; margin-top: 8px;'>Você optou por não participar do jantar.</div>
+                            </div>
+                        </td>
+                    </tr>
+                    " : "") . "
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #fafafa; padding: 24px 30px; text-align: center; border-top: 1px solid #eee;'>
+                            <div style='font-size: 12px; color: #999;'>
+                                <a href='https://eventos.vivos.site/inscricao' style='color: #d4a800; text-decoration: none; font-weight: 600;'>Alterar inscrição</a>
+                            </div>
+                            <div style='font-size: 11px; color: #bbb; margin-top: 12px;'>© 2025 Igreja Vivos com Cristo</div>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
 ";

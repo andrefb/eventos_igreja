@@ -89,6 +89,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
         header('Location: admin?tab=pratos');
         exit;
     }
+    
+    if ($_POST['acao'] === 'salvar_data_limite' && $logado) {
+        $data = $_POST['data'] ?? '';
+        $hora = $_POST['hora'] ?? '09:00';
+        $dataHora = $data . ' ' . $hora . ':00';
+        
+        setDataLimite($dataHora);
+        
+        header('Location: admin?tab=config&msg=salvo');
+        exit;
+    }
 }
 
 // Buscar dados
@@ -265,6 +276,10 @@ $tab = $_GET['tab'] ?? 'inscricoes';
                 class="px-4 py-2 rounded-xl text-sm font-medium transition-colors <?= $tab === 'pratos' ? 'bg-primary text-background-dark' : 'bg-surface-dark text-white hover:bg-white/10' ?>">
                 Pratos
             </a>
+            <a href="?tab=config" 
+                class="px-4 py-2 rounded-xl text-sm font-medium transition-colors <?= $tab === 'config' ? 'bg-primary text-background-dark' : 'bg-surface-dark text-white hover:bg-white/10' ?>">
+                ⚙️ Configurações
+            </a>
         </div>
 
         <?php if ($tab === 'inscricoes'): ?>
@@ -415,6 +430,74 @@ $tab = $_GET['tab'] ?? 'inscricoes';
                     <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($tab === 'config'): ?>
+        <!-- Configurações -->
+        <?php 
+        $dataLimiteAtual = getDataLimite();
+        $dataLimiteParts = $dataLimiteAtual ? explode(' ', $dataLimiteAtual) : ['2025-12-30', '09:00:00'];
+        $dataAtual = $dataLimiteParts[0];
+        $horaAtual = substr($dataLimiteParts[1] ?? '09:00:00', 0, 5);
+        $inscricoesAbertasAgora = inscricoesAbertas();
+        ?>
+        <div class="max-w-md">
+            <div class="bg-surface-dark rounded-2xl p-6 border border-white/5 mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="material-symbols-outlined text-primary">schedule</span>
+                    <h2 class="font-bold text-lg">Data Limite de Inscrições</h2>
+                </div>
+                
+                <!-- Status atual -->
+                <div class="mb-6 p-4 rounded-xl <?= $inscricoesAbertasAgora ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20' ?>">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined <?= $inscricoesAbertasAgora ? 'text-green-400' : 'text-red-400' ?>">
+                            <?= $inscricoesAbertasAgora ? 'lock_open' : 'lock' ?>
+                        </span>
+                        <span class="font-bold <?= $inscricoesAbertasAgora ? 'text-green-400' : 'text-red-400' ?>">
+                            <?= $inscricoesAbertasAgora ? 'Inscrições ABERTAS' : 'Inscrições FECHADAS' ?>
+                        </span>
+                    </div>
+                    <p class="text-xs text-text-secondary mt-2">
+                        Limite atual: <strong class="text-white"><?= date('d/m/Y H:i', strtotime($dataLimiteAtual)) ?></strong>
+                    </p>
+                </div>
+                
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="acao" value="salvar_data_limite">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-text-secondary mb-2">Data</label>
+                            <input type="date" name="data" value="<?= $dataAtual ?>" required
+                                class="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-text-secondary mb-2">Hora</label>
+                            <input type="time" name="hora" value="<?= $horaAtual ?>" required
+                                class="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary">
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-text-secondary">
+                        Após essa data/hora, as inscrições serão bloqueadas automaticamente.
+                    </p>
+                    
+                    <button type="submit"
+                        class="w-full bg-primary hover:bg-[#ffed4a] text-background-dark font-bold rounded-xl py-3 transition-colors">
+                        Salvar Data Limite
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Dicas rápidas -->
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                <p class="text-xs text-blue-400 font-medium mb-2">💡 Dica</p>
+                <p class="text-xs text-text-secondary">
+                    Se os pastores pedirem mais tempo, basta alterar a data/hora aqui e as inscrições voltam a funcionar automaticamente!
+                </p>
             </div>
         </div>
         <?php endif; ?>

@@ -6,6 +6,19 @@ if (!file_exists(DB_PATH)) {
     initDB();
 }
 
+// Verificar se inscrições ainda estão abertas
+if (!inscricoesAbertas()) {
+    // Se tentar acessar via AJAX, retornar erro
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        header('Content-Type: application/json');
+        echo json_encode(['sucesso' => false, 'erro' => 'Inscrições encerradas']);
+        exit;
+    }
+    // Se acessar normalmente, redirecionar
+    header('Location: /?inscricoes=fechadas');
+    exit;
+}
+
 // Buscar pratos do banco
 $pratos = buscarPratos();
 
@@ -35,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 'whatsapp' => htmlspecialchars($_POST['whatsapp'] ?? ''),
                 'participa_jantar' => ($_POST['jantar'] ?? '') === 'sim',
                 'acompanhantes' => $_POST['acompanhantes'] ?? [],
-                'pratos' => $_POST['pratos'] ?? []
+                'pratos' => isset($_POST['prato']) ? [$_POST['prato']] : []
             ];
             
             if ($inscricaoExistente) {
@@ -45,28 +58,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $id = salvarInscricao($dados);
             }
             
-            // Enviar email de confirmação
-            $acompanhantes = array_filter(array_map('trim', $dados['acompanhantes']));
+            // Retornar sucesso SEM enviar email ainda
+            echo json_encode(['sucesso' => true, 'id' => $id]);
+        } catch (Exception $e) {
+            echo json_encode(['sucesso' => false, 'erro' => $e->getMessage()]);
+        }
+        exit;
+    }
+    
+    // Enviar email em chamada separada
+    if ($_POST['action'] === 'enviar_email') {
+        $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
+        $inscricao = buscarInscricaoPorEmail($email);
+        
+        if ($inscricao) {
+            $acompanhantes = $inscricao['acompanhantes'] ?? [];
             $pratosNomes = [];
-            if ($dados['participa_jantar'] && !empty($dados['pratos'])) {
+            
+            if ($inscricao['participa_jantar'] && !empty($inscricao['pratos'])) {
                 $pdo = getDB();
-                $placeholders = implode(',', array_fill(0, count($dados['pratos']), '?'));
-                $stmt = $pdo->prepare("SELECT nome FROM pratos WHERE id IN ($placeholders)");
-                $stmt->execute($dados['pratos']);
+                $stmt = $pdo->prepare("SELECT nome FROM pratos WHERE id = ?");
+                $stmt->execute([$inscricao['pratos'][0]]);
                 $pratosNomes = $stmt->fetchAll(PDO::FETCH_COLUMN);
             }
             
             $inscricaoEmail = [
-                'nome' => $dados['nome'],
-                'email' => $dados['email'],
-                'participa_jantar' => $dados['participa_jantar']
+                'nome' => $inscricao['nome'],
+                'email' => $inscricao['email'],
+                'participa_jantar' => $inscricao['participa_jantar']
             ];
             
             $emailEnviado = enviarEmailConfirmacao($inscricaoEmail, $acompanhantes, $pratosNomes);
-            
-            echo json_encode(['sucesso' => true, 'id' => $id, 'email_enviado' => $emailEnviado]);
-        } catch (Exception $e) {
-            echo json_encode(['sucesso' => false, 'erro' => $e->getMessage()]);
+            echo json_encode(['email_enviado' => $emailEnviado]);
+        } else {
+            echo json_encode(['email_enviado' => false]);
         }
         exit;
     }
@@ -210,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <!-- Acompanhantes -->
                 <div>
-                    <label class="block text-[10px] uppercase tracking-wider text-text-secondary mb-2">Quem vai com você?</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-white mb-2">👥 Quem vai com você?</label>
                     <div id="lista-acompanhantes" class="space-y-2">
                         <!-- Acompanhantes serão adicionados aqui -->
                     </div>
@@ -223,7 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <!-- Opção Jantar -->
                 <div>
-                    <label class="block text-[10px] uppercase tracking-wider text-text-secondary mb-3">Vai participar do jantar?</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-white mb-3">🍽️ Vai participar do jantar?</label>
                     <div class="space-y-2">
                         <label class="block cursor-pointer group">
                             <input type="radio" name="jantar" value="sim" class="sr-only peer" onchange="togglePratos(true)">
@@ -233,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 </div>
                                 <div>
                                     <span class="text-white font-semibold">Sim, vou levar um prato 🍽️</span>
-                                    <p class="text-text-secondary text-xs mt-0.5">Participação colaborativa</p>
+                                    <p class="text-text-secondary text-xs mt-0.5">E também uma bebida!</p>
                                 </div>
                             </div>
                         </label>
@@ -254,18 +279,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 <!-- Lista de Pratos (aparece quando seleciona "Sim") -->
                 <div id="secao-pratos" class="hidden">
-                    <label class="block text-[10px] uppercase tracking-wider text-text-secondary mb-3">Qual prato vai trazer?</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-white mb-3">🍲 Qual prato vai levar?</label>
                     <div class="space-y-2" id="lista-pratos">
                         <?php foreach ($pratos as $prato): ?>
                         <label class="flex items-center gap-3 bg-surface-dark border border-white/10 rounded-xl p-4 cursor-pointer hover:border-white/20 transition-colors <?= $prato['restantes'] <= 0 ? 'opacity-50' : '' ?>">
-                            <input type="checkbox" name="pratos[]" value="<?= $prato['id'] ?>" 
+                            <input type="radio" name="prato" value="<?= $prato['id'] ?>" 
                                 <?= $prato['restantes'] <= 0 ? 'disabled' : '' ?>
-                                class="w-5 h-5 rounded bg-surface-dark border-white/30 text-primary focus:ring-primary focus:ring-offset-0">
+                                class="w-5 h-5 bg-surface-dark border-white/30 text-primary focus:ring-primary focus:ring-offset-0">
                             <div class="flex-1">
                                 <span class="text-white"><?= htmlspecialchars($prato['nome']) ?></span>
-                                <?php if ($prato['restantes'] > 0): ?>
-                                <span class="text-xs text-text-secondary ml-2">(<?= $prato['restantes'] ?> restantes)</span>
-                                <?php else: ?>
+                                <?php if ($prato['restantes'] <= 0): ?>
                                 <span class="text-xs text-red-400 ml-2">(esgotado)</span>
                                 <?php endif; ?>
                             </div>
@@ -273,18 +296,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- Aviso sobre bebida e talheres -->
-                    <div class="mt-4 bg-primary/10 rounded-xl p-4 border border-primary/20">
-                        <div class="flex gap-3 items-start mb-3">
-                            <span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">local_bar</span>
-                            <p class="text-xs text-primary/90 leading-relaxed">
-                                <span class="font-bold">Bebida:</span> Traga a bebida de sua preferência!
+                    <!-- Aviso IMPORTANTE sobre bebida -->
+                    <div class="mt-4 bg-sky-500/20 rounded-xl p-5 border-2 border-sky-400/60">
+                        <div class="flex gap-3 items-center">
+                            <span class="material-symbols-outlined text-sky-400 text-[28px] shrink-0">local_bar</span>
+                            <p class="text-base text-white font-bold">
+                                Leve também a bebida!
                             </p>
                         </div>
+                    </div>
+                    
+                    <!-- Aviso sobre talheres -->
+                    <div class="mt-3 bg-primary/10 rounded-xl p-4 border border-primary/20">
                         <div class="flex gap-3 items-start">
                             <span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">restaurant</span>
                             <p class="text-xs text-primary/90 leading-relaxed">
-                                <span class="font-bold">Talheres:</span> Traga talheres para servir o prato que vai levar!
+                                <span class="font-bold">Talheres:</span> Leve talheres para servir o prato!
                             </p>
                         </div>
                     </div>
@@ -310,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <span class="material-symbols-outlined text-primary text-4xl">check_circle</span>
                 </div>
                 <h1 class="text-2xl font-black text-white mb-2">Presença Confirmada!</h1>
-                <p class="text-text-secondary mb-8">Estamos ansiosos para celebrar com você!</p>
+                <p class="text-text-secondary mb-8">Estamos alegres por celebrar com você!</p>
 
                 <div class="bg-surface-dark rounded-2xl p-6 border border-white/5 w-full mb-6">
                     <div class="flex items-center gap-3 mb-4">
@@ -339,26 +366,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         <div id="lista-resumo-participantes" class="text-sm text-white"></div>
                     </div>
                     <div id="resumo-pratos" class="hidden border-t border-white/5 pt-4 mt-4">
-                        <p class="text-xs text-text-secondary mb-2">Pratos que vai levar:</p>
+                        <p class="text-sm font-bold text-white mb-2">🍲 Prato que vai levar:</p>
                         <div id="lista-resumo-pratos" class="text-sm text-white"></div>
                     </div>
                 </div>
                 
                 <!-- Lembretes (aparece se participa do jantar) -->
-                <div id="resumo-lembretes" class="hidden bg-primary/10 rounded-xl p-4 border border-primary/20 w-full mb-6">
-                    <p class="text-xs font-bold text-primary mb-3">⚠️ Lembretes Importantes:</p>
-                    <div class="space-y-2">
-                        <div class="flex gap-2 items-start">
-                            <span class="material-symbols-outlined text-primary text-[18px]">local_bar</span>
-                            <p class="text-xs text-primary/90">Traga a <strong>bebida de sua preferência</strong></p>
+                <div id="resumo-lembretes" class="hidden w-full mb-6 space-y-3">
+                    <!-- Bebida em destaque -->
+                    <div class="bg-sky-500/20 rounded-xl p-4 border-2 border-sky-400/60">
+                        <div class="flex gap-3 items-center">
+                            <span class="material-symbols-outlined text-sky-400 text-[24px]">local_bar</span>
+                            <p class="text-base text-white font-bold">Leve também a bebida!</p>
                         </div>
-                        <div class="flex gap-2 items-start">
+                    </div>
+                    <!-- Talheres -->
+                    <div class="bg-primary/10 rounded-xl p-3 border border-primary/20">
+                        <div class="flex gap-2 items-center">
                             <span class="material-symbols-outlined text-primary text-[18px]">restaurant</span>
-                            <p class="text-xs text-primary/90">Traga <strong>talheres para servir</strong> o prato que vai levar</p>
-                        </div>
-                        <div class="flex gap-2 items-start">
-                            <span class="material-symbols-outlined text-primary text-[18px]">schedule</span>
-                            <p class="text-xs text-primary/90">Chegue com <strong>antecedência</strong> para organização</p>
+                            <p class="text-xs text-primary/90">Leve <strong>talheres para servir</strong> o prato</p>
                         </div>
                     </div>
                 </div>
@@ -417,12 +443,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         document.querySelector('input[name="jantar"][value="sim"]').checked = true;
                         togglePratos(true);
                         
-                        // Marcar pratos
-                        if (data.dados.pratos) {
-                            data.dados.pratos.forEach(pratoId => {
-                                const checkbox = document.querySelector(`input[name="pratos[]"][value="${pratoId}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
+                        // Marcar prato
+                        if (data.dados.pratos && data.dados.pratos.length > 0) {
+                            const radio = document.querySelector(`input[name="prato"][value="${data.dados.pratos[0]}"]`);
+                            if (radio) radio.checked = true;
                         }
                     } else {
                         document.querySelector('input[name="jantar"][value="nao"]').checked = true;
@@ -484,11 +508,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 return;
             }
             
-            // Se vai ao jantar, validar se selecionou ao menos 1 prato
+            // Se vai ao jantar, validar se selecionou um prato
             if (jantarSim.checked) {
-                const pratosChecked = document.querySelectorAll('input[name="pratos[]"]:checked');
-                if (pratosChecked.length === 0) {
-                    alert('Por favor, selecione ao menos um prato que vai levar.');
+                const pratoSelecionado = document.querySelector('input[name="prato"]:checked');
+                if (!pratoSelecionado) {
+                    alert('Por favor, selecione o prato que vai levar.');
                     return;
                 }
             }
@@ -532,23 +556,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     // Mostrar pratos no resumo
                     if (participaJantar) {
-                        const pratosChecked = document.querySelectorAll('input[name="pratos[]"]:checked');
-                        if (pratosChecked.length > 0) {
+                        const pratoSelecionado = document.querySelector('input[name="prato"]:checked');
+                        if (pratoSelecionado) {
                             document.getElementById('resumo-pratos').classList.remove('hidden');
-                            const nomesPratos = Array.from(pratosChecked).map(cb => {
-                                return cb.closest('label').querySelector('.text-white').textContent;
-                            });
+                            const nomePrato = pratoSelecionado.closest('label').querySelector('.text-white').textContent;
                             document.getElementById('lista-resumo-pratos').innerHTML = 
-                                nomesPratos.map(n => `<span class="inline-block bg-primary/20 text-primary px-2 py-1 rounded mr-1 mb-1">${n}</span>`).join('');
+                                `<span class="inline-block bg-primary/20 text-primary text-lg font-bold px-4 py-2 rounded-lg">${nomePrato}</span>`;
                         }
                         
                         // Mostrar lembretes
                         document.getElementById('resumo-lembretes').classList.remove('hidden');
                     }
 
-                    // Mostrar sucesso
+                    // Mostrar sucesso PRIMEIRO
                     document.getElementById('step-form').classList.remove('active');
                     document.getElementById('step-sucesso').classList.add('active');
+                    
+                    // Enviar email em background DEPOIS
+                    const emailFormData = new FormData();
+                    emailFormData.append('action', 'enviar_email');
+                    emailFormData.append('email', emailAtual);
+                    fetch('inscricao', { method: 'POST', body: emailFormData });
                 } else {
                     alert('Erro ao salvar: ' + (data.erro || 'Tente novamente'));
                 }
