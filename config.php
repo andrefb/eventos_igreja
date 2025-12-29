@@ -226,7 +226,9 @@ function buscarPratos(): array {
                (p.quantidade_total - (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id)) as restantes
         FROM pratos p 
         WHERE p.ativo = 1 
-        ORDER BY nome
+        ORDER BY 
+            CASE WHEN (p.quantidade_total - (SELECT COUNT(*) FROM inscricao_pratos WHERE prato_id = p.id)) <= 0 THEN 1 ELSE 0 END,
+            nome
     ");
     return $stmt->fetchAll();
 }
